@@ -48,6 +48,9 @@ ADC_FlightMonitor/
 │   │   ├── bmp280.h              # BMP280 I2C driver — altitude
 │   │   ├── ultrasound.h          # HC-SR04 TIM4 input capture driver
 │   │   └── sensor_sim.h          # Fake data injector (no hardware needed)
+
+
+
 │   │
 │   └── Src/
 │       ├── app_data.c            # Global sensor snapshot + warn log instances
