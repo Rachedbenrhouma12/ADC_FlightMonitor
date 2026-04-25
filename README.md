@@ -18,7 +18,6 @@ Threshold breaches are timestamped and logged to an on-screen event log, giving 
 - 🖥️ **Live TFT dashboard** — airspeed, altitude, temperature panels with threshold indicators
 - 🛫 **Flight scenario detection** — ASCENDING / DESCENDING / GROUND via HC-SR04 ultrasound
 - ⚠️ **Timestamped warning log** — circular buffer, logs every threshold crossing with value and time
-- 🔁 **Simulation mode** — runs with fake oscillating data so the display can be tested without hardware
 - 🧱 **Modular architecture** — each sensor, the display, and the logic are fully independent modules
 
 ---
