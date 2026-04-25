@@ -1,72 +1,39 @@
-# ✈️ ADC Flight Monitor — STM32F429I-DISC1
+✈️ ADC Flight Monitor — STM32F429I-DISC1
 
-> End-of-studies embedded systems project — a real-time flight data acquisition and display system built on the STM32F429 Discovery board.
+End-of-studies embedded systems project — a real-time flight data acquisition and display system built on the STM32F429 Discovery board.
 
----
 
-## Overview
-
-This project implements a prototype **Airborne Data Computer (ADC)** on the STM32F429I-DISC1 Discovery board. It acquires airspeed, altitude, and temperature from physical sensors, detects flight phases (ascending/descending/ground) via an ultrasonic sensor, and displays all measurements in real time on the board's built-in 2.4" ILI9341 TFT LCD.
-
+Overview
+This project implements a prototype Airborne Data Computer (ADC) on the STM32F429I-DISC1 Discovery board. It acquires airspeed, altitude, and temperature from physical sensors, detects flight phases (ascending/descending/ground) via an ultrasonic sensor, and displays all measurements in real time on the board's built-in 2.4" ILI9341 TFT LCD.
 Threshold breaches are timestamped and logged to an on-screen event log, giving a chronological record of any exceedances during a flight session.
 
----
+Hardware Demo
+A live hardware demonstration is available for this project. The system runs on a physical STM32F429I-DISC1 board with all sensors connected and active. The TFT display shows the real-time dashboard — airspeed, altitude, and temperature panels updating live — alongside the flight phase indicator and the timestamped warning log reacting to actual sensor readings.
+The demo uses three physical sensors:
 
-## Features
+HC-SR04 Ultrasonic sensor — measures distance to detect and classify the current flight phase (ascending, descending, or on the ground)
+BMP280 barometric pressure sensor — derives altitude from ambient pressure readings using the full Bosch compensation formula
+Airspeed sensor (MPXV7002DP differential pressure) — converts differential pressure into airspeed in km/h
 
-- 📡 **Real-time sensor acquisition** via ADC (DMA), I2C, and GPIO/Timer input capture
-- 🖥️ **Live TFT dashboard** — airspeed, altitude, temperature panels with threshold indicators
-- 🛫 **Flight scenario detection** — ASCENDING / DESCENDING / GROUND via HC-SR04 ultrasound
-- ⚠️ **Timestamped warning log** — circular buffer, logs every threshold crossing with value and time
-- 🧱 **Modular architecture** — each sensor, the display, and the logic are fully independent modules
+All threshold alerts and flight state transitions visible in the demo are triggered by real sensor data, not simulated values.
 
----
+Features
 
-## Hardware
+📡 Real-time sensor acquisition via ADC (DMA), I2C, and GPIO/Timer input capture
+🖥️ Live TFT dashboard — airspeed, altitude, temperature panels with threshold indicators
+🛫 Flight scenario detection — ASCENDING / DESCENDING / GROUND via HC-SR04 ultrasound
+⚠️ Timestamped warning log — circular buffer, logs every threshold crossing with value and time
+🧱 Modular architecture — each sensor, the display, and the logic are fully independent modules
 
-| Component | Purpose | Interface |
-|---|---|---|
-| STM32F429I-DISC1 | Main microcontroller board | — |
-| ILI9341 TFT LCD | Display (built-in on Discovery) | SPI5 / BSP |
-| MPXV7002DP | Differential pressure → airspeed | ADC1 PA3 |
-| BMP280 | Barometric pressure → altitude | I2C1 PB8/PB9 |
-| NTC Thermistor 10kΩ | Temperature | ADC1 PC0 |
-| HC-SR04 | Ultrasound distance → flight phase | GPIO PE0 / TIM4 PD12 |
 
----
+Hardware
+ComponentPurposeInterfaceSTM32F429I-DISC1Main microcontroller board—ILI9341 TFT LCDDisplay (built-in on Discovery)SPI5 / BSPMPXV7002DPDifferential pressure → airspeedADC1 PA3BMP280Barometric pressure → altitudeI2C1 PB8/PB9NTC Thermistor 10kΩTemperatureADC1 PC0HC-SR04Ultrasound distance → flight phaseGPIO PE0 / TIM4 PD12
 
-## Pin Mapping
+Thresholds
+MeasurementThresholdAction on breachAirspeed> 80 km/hCRITICAL warning loggedAltitude> 100 mINFO warning loggedTemperature> 45 °CCRITICAL warning loggedUS Distance< 30 cmGround landing event logged
+All thresholds are defined in Core/Inc/app_config.h and can be adjusted without touching any other file.
 
-```
-PA3   ADC1_IN3     MPXV7002DP Vout   (airspeed)
-PC0   ADC1_IN10    NTC mid-node      (temperature)
-PB8   I2C1_SCL     BMP280 SCL        (altitude)
-PB9   I2C1_SDA     BMP280 SDA        (altitude)
-PE0   GPIO_OUT     HC-SR04 Trigger   (ultrasound)
-PD12  TIM4_CH1     HC-SR04 Echo      (ultrasound, level-shifted)
-```
-
-> ⚠️ HC-SR04 Echo outputs 5V — use a 1kΩ/2kΩ voltage divider before PD12.
-> BMP280 SDA/SCL require 4.7kΩ pull-up resistors to 3.3V.
-
----
-
-## Thresholds
-
-| Measurement | Threshold | Action on breach |
-|---|---|---|
-| Airspeed | > 80 km/h | CRITICAL warning logged |
-| Altitude | > 100 m | INFO warning logged |
-| Temperature | > 45 °C | CRITICAL warning logged |
-| US Distance | < 30 cm | Ground landing event logged |
-
-All thresholds are defined in `Core/Inc/app_config.h` and can be adjusted without touching any other file.
-
----
-
-## Project Structure
-
-```
+Project Structure
 ADC_FlightMonitor/
 │
 ├── Core/
@@ -96,65 +63,3 @@ ADC_FlightMonitor/
 ├── Drivers/                      # STM32 HAL + BSP (generated by CubeMX)
 ├── .gitignore
 └── README.md
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) v1.12+
-- STM32F429I-DISC1 Discovery board
-- STM32CubeF4 firmware package (auto-downloaded by CubeIDE)
-- BSP drivers for STM32F429I-Discovery (included in CubeF4 package)
-
-### Build & Flash (simulation mode — no sensors needed)
-
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/yourusername/ADC_FlightMonitor.git
-   ```
-2. Open STM32CubeIDE → **File → Open Projects from File System** → select the cloned folder
-3. Verify `SIMULATE_SENSORS = 1` in `Core/Inc/app_config.h`
-4. Build: **Project → Build All** (`Ctrl+B`)
-5. Flash: **Run → Debug** with the board connected via USB
-
-### Switch to real sensors
-
-1. Wire sensors according to the pin mapping above
-2. Set `SIMULATE_SENSORS 0` in `app_config.h`
-3. Enable ADC1 DMA, I2C1, TIM4 in the `.ioc` file and regenerate code
-4. Rebuild and flash
-
----
-
-## Development Roadmap
-
-- [x] Project architecture and module stubs
-- [x] Shared data structures (`SensorData_t`, `WarnEntry_t`)
-- [x] Warning logger (circular buffer)
-- [x] Threshold monitor (rising-edge detection)
-- [x] Flight state machine
-- [x] Sensor simulator (no hardware needed)
-- [x] TFT display manager — all panels and event log
-- [x] ADC handler — MPXV7002DP airspeed + NTC temperature
-- [x] BMP280 I2C driver — altitude
-- [x] HC-SR04 ultrasound — TIM4 input capture
-- [x] `.ioc` CubeMX configuration file
-- [x] Integration testing on hardware
-- [x] Final calibration and threshold tuning
-
----
-
-## Author
-
-**[Your Name]**
-Embedded Systems — End of Studies Project
-[Your School / University] — [Year]
-
----
-
-## License
-
-Academic project — not licensed for commercial use.
